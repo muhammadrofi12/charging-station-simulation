@@ -1,0 +1,18 @@
+{
+  "Port_#0002": {
+    "connector_id": 1,
+    "label": "Port USB -> Nozzle 1"
+  },
+  "Port_#0003": {
+    "connector_id": 2,
+    "label": "Port USB 2 (Kanan) - DC CHAdeMO"
+  },
+  "Port_#0004": {
+    "connector_id": 3,
+    "label": "Port USB 3 (Type-C) - CCS2"
+  },
+  "Port_#0008": {
+    "connector_id": 2,
+    "label": "Test Custom Port 8"
+  }
+}

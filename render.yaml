@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: voltx-charging-station
+    env: python
+    region: singapore
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: CLOUD_MODE
+        value: "true"

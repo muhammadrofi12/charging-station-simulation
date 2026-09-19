@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>VOLTX EV Driver App</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body class="driver-body">
+
+  <div class="presentation-container" id="presContainer">
+
+    <!-- PRESENTER SHOWCASE BOARD (Visible on Desktop for Stakeholders) -->
+    <aside class="presenter-board">
+      <div class="presenter-header">
+        <div class="brand-badge">
+          <span class="icon-bolt" style="font-size:1.6rem;">⚡</span>
+          <div>
+            <div style="font-weight: 800; font-size: 1.15rem; color:#fff;">VOLTX SPKLU</div>
+            <div style="font-size: 0.72rem; color: #38BDF8; font-weight: 600;">VOLTX STATION PORTAL</div>
+          </div>
+        </div>
+        <span class="status-pill online">● ONLINE</span>
+      </div>
+
+      <!-- Station Info Card -->
+      <div class="demo-card">
+        <div class="demo-card-title">📍 INFORMASI SPKLU</div>
+        <div class="demo-info-row">
+          <span>Stasiun:</span>
+          <b>CS-SDR-01 (Sudirman Central)</b>
+        </div>
+        <div class="demo-info-row">
+          <span>Pilihan Nozzle:</span>
+          <b style="color: #4ADE80;">3 Nozzle (AC, DC, CCS)</b>
+        </div>
+        <div class="demo-info-row">
+          <span>Tarif Berlaku:</span>
+          <b style="color: #38BDF8;">Rp 2.466 - Rp 3.500 / kWh</b>
+        </div>
+        <div class="demo-info-row">
+          <span>Sistem Komunikasi:</span>
+          <span id="desktopAdbStatus" class="status-pill online" style="font-size:0.68rem; padding: 2px 8px;">⚡ Auto-Detect EV (ISO 15118)</span>
+        </div>
+      </div>
+      <!-- Mode Tampilan Toggle -->
+      <div class="demo-card">
+        <div class="demo-card-title">🖥️ MODE TAMPILAN</div>
+        <div style="display: flex; gap: 6px; margin-top: 6px;">
+          <button type="button" id="btnModeMockup" onclick="setDisplayMode('mockup')" class="btn-mode-toggle active">
+            📱 Mockup HP
+          </button>
+          <button type="button" id="btnModeFluid" onclick="setDisplayMode('fluid')" class="btn-mode-toggle">
+            🖥️ Lebar Penuh
+          </button>
+        </div>
+        <p style="font-size: 0.68rem; color:#64748B; margin-top:8px; line-height: 1.3;">
+          💡 <i>Pada layar smartphone fisik atau devtools mobile, aplikasi otomatis tampil 100% Native Mobile App.</i>
+        </p>
+      </div>
+    </aside>
+
+    <!-- CENTER: SMARTPHONE DEVICE MOCKUP -->
+    <main class="phone-mockup-wrapper" id="phoneMockupWrapper">
+      <div class="phone-device" id="phoneDevice">
+        <!-- Physical Volume & Power Buttons -->
+        <div class="phone-button power-btn"></div>
+        <div class="phone-button volume-up-btn"></div>
+        <div class="phone-button volume-down-btn"></div>
+
+        <!-- Physical Notch / Dynamic Island -->
+        <div class="phone-dynamic-island">
+          <div class="island-camera"></div>
+          <div class="island-sensor"></div>
+        </div>
+
+        <!-- Phone Status Bar -->
+        <div class="phone-status-bar">
+          <span class="status-time" id="phoneClock">09:41</span>
+          <div class="status-icons">
+            <span>5G</span>
+            <span>📶</span>
+            <span id="phoneStatusBarBattery">🔋 100%</span>
+          </div>
+        </div>
+
+        <!-- Phone Screen Interior: The Driver App -->
+        <div class="phone-screen" id="phoneScreen">
+          <div class="driver-wrapper">
+
+    <!-- ============================================== -->
+    <!-- AUTH VIEW: LOGIN & REGISTER SCREEN -->
+    <!-- ============================================== -->
+    <div id="authView" style="display: none; padding: 18px 16px; flex: 1;">
+      <div style="text-align: center; margin-bottom: 16px; margin-top: 4px;">
+        <div style="font-size: 2.3rem; margin-bottom: 4px;">⚡</div>
+        <h1 style="font-size: 1.25rem; font-weight: 800; color: #fff; letter-spacing: 0.5px;">VOLTX CHARGING</h1>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Aplikasi Mobile Driver SPKLU</p>
+      </div>
+
+      <div class="card" style="border: 1px solid var(--border-color); background: #0E1626;">
+        <div class="tab-row" style="margin-bottom: 16px;">
+          <button class="tab-btn active" id="tabAuthLogin" onclick="switchAuthTab('login')">Masuk (Login)</button>
+          <button class="tab-btn" id="tabAuthRegister" onclick="switchAuthTab('register')">Daftar Baru</button>
+        </div>
+
+        <!-- FORM LOGIN -->
+        <form id="formLogin" onsubmit="handleLoginSubmit(event)">
+          <div style="margin-bottom: 14px;">
+            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">Username:</label>
+            <input type="text" id="loginUsername" required placeholder="misal: driver1" style="width:100%; background:var(--bg-input); border:1px solid var(--border-color); color:#fff; padding:12px; border-radius:10px; font-size:0.9rem;">
+          </div>
+          <div style="margin-bottom: 18px;">
+            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">Password:</label>
+            <input type="password" id="loginPassword" required placeholder="Masukkan password" style="width:100%; background:var(--bg-input); border:1px solid var(--border-color); color:#fff; padding:12px; border-radius:10px; font-size:0.9rem;">
+          </div>
+          <button type="submit" id="btnLoginSubmit" class="btn btn-primary btn-block" style="padding:14px; font-size:1rem; border-radius:12px;">
+            Masuk ke Akun ➜
+          </button>
+        </form>
+
+        <!-- FORM REGISTER -->
+        <form id="formRegister" onsubmit="handleRegisterSubmit(event)" style="display: none;">
+          <div style="margin-bottom: 12px;">
+            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">Nama Lengkap:</label>
+            <input type="text" id="regFullName" required placeholder="misal: Budi Santoso" style="width:100%; background:var(--bg-input); border:1px solid var(--border-color); color:#fff; padding:12px; border-radius:10px; font-size:0.9rem;">
+          </div>
+          <div style="margin-bottom: 12px;">
+            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">Username:</label>
+            <input type="text" id="regUsername" required placeholder="Username unik" style="width:100%; background:var(--bg-input); border:1px solid var(--border-color); color:#fff; padding:12px; border-radius:10px; font-size:0.9rem;">
+          </div>
+          <div style="margin-bottom: 12px;">
+            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">No. WhatsApp / HP:</label>
+            <input type="tel" id="regPhone" required placeholder="misal: 08123456789" style="width:100%; background:var(--bg-input); border:1px solid var(--border-color); color:#fff; padding:12px; border-radius:10px; font-size:0.9rem;">
+          </div>
+          <div style="margin-bottom: 18px;">
+            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">Password:</label>
+            <input type="password" id="regPassword" required placeholder="Minimal 4 karakter" style="width:100%; background:var(--bg-input); border:1px solid var(--border-color); color:#fff; padding:12px; border-radius:10px; font-size:0.9rem;">
+          </div>
+          <button type="submit" id="btnRegSubmit" class="btn btn-primary btn-block" style="padding:14px; font-size:1rem; border-radius:12px;">
+            Daftar & Dapatkan Saldo Rp 150.000 ➜
+          </button>
+        </form>
+
+        <!-- DEMO ACCOUNTS QUICK FILL -->
+        <div style="border-top: 1px dashed #1E293B; margin-top: 20px; padding-top: 14px;">
+          <div style="font-size: 0.72rem; color: #64748B; margin-bottom: 8px; text-align: center;">⚡ Akun Pengguna Cepat:</div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <button type="button" onclick="quickFillAccount('driver1', 'password123')" style="background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.2); color: #38BDF8; padding: 8px 12px; border-radius: 8px; font-size: 0.78rem; text-align: left; cursor: pointer; display: flex; justify-content: space-between;">
+              <span>👤 <b>driver1</b> (Budi Santoso)</span>
+              <span style="color: #4ADE80;">Rp 150rb</span>
+            </button>
+            <button type="button" onclick="quickFillAccount('driver2', 'password123')" style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.2); color: #C084FC; padding: 8px 12px; border-radius: 8px; font-size: 0.78rem; text-align: left; cursor: pointer; display: flex; justify-content: space-between;">
+              <span>👤 <b>driver2</b> (Siti Rahma)</span>
+              <span style="color: #4ADE80;">Rp 200rb</span>
+            </button>
+            <button type="button" onclick="quickFillAccount('admin', 'admin123')" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); color: #FBBF24; padding: 8px 12px; border-radius: 8px; font-size: 0.78rem; text-align: left; cursor: pointer; display: flex; justify-content: space-between;">
+              <span>🛡️ <b>admin</b> (Operator SPKLU)</span>
+              <span style="color: #4ADE80;">Supervisor</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MAIN DRIVER APP VIEW (AUTHENTICATED) -->
+    <!-- ============================================== -->
+    <div id="driverAppView" style="display: flex; flex-direction: column; flex: 1; height: 100%;">
+      <!-- APP HEADER (RESPONSIVE 2-ROW FINTECH LAYOUT) -->
+      <header class="driver-header">
+        <!-- TOP ROW: BRAND & PROFILE / LOGOUT -->
+        <div class="driver-header-top">
+          <div class="brand-badge">
+            <span class="icon-bolt">⚡</span>
+            <span style="font-weight: 800; font-size: 0.95rem; color: #fff; letter-spacing: 0.3px;">VOLTX Driver</span>
+          </div>
+          <div class="driver-profile-group">
+            <div class="driver-user-info">
+              <span id="headerDriverName" class="driver-user-name">-</span>
+              <span id="headerRoleBadge" class="status-pill online" style="padding: 2px 7px; font-size: 0.65rem;">DRIVER</span>
+            </div>
+            <button type="button" onclick="logoutUser()" class="btn-logout" title="Keluar / Ganti Akun">
+              Keluar
+            </button>
+          </div>
+        </div>
+
+        <!-- BOTTOM ROW: WALLET QUICK BAR -->
+        <div class="driver-wallet-bar">
+          <div class="wallet-balance-info">
+            <span class="wallet-icon">💳</span>
+            <span class="wallet-label">Saldo:</span>
+            <span class="wallet-amount">Rp <span id="userBalanceText">0</span></span>
+          </div>
+          <button type="button" onclick="openTopUpModal()" class="btn-topup-compact" title="Top Up Saldo Dompet">
+            <span style="font-size: 0.85rem; font-weight: 900;">+</span> Top Up
+          </button>
+        </div>
+      </header>
+
+      <div style="padding: 16px; flex: 1; overflow-y: auto;">
+      
+      <!-- CONNECTED REAL EV STATUS CARD (Tampil di Step 2 & 3 setelah handshake terverifikasi) -->
+      <div class="card" id="connectedDeviceCard" style="display: none; background: #111A2E; margin-bottom: 16px; padding: 14px; border: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+          <div>
+            <div style="font-size: 0.68rem; color: #38BDF8; font-weight: 800; letter-spacing: 0.5px;">KENDARAAN TERDETEKSI (ISO 15118)</div>
+            <div style="font-size: 1rem; font-weight: 800; color: #fff;" id="driverCarName">Hyundai Ioniq 5 Long Range</div>
+            <div style="font-size: 0.75rem; color: #94A3B8;" id="driverCarSpecs">Plat: B 1888 ION • Kapasitas: 72.6 kWh • 800V</div>
+          </div>
+          <span class="status-pill online" style="font-size: 0.72rem; padding: 4px 8px;" id="driverCarBadge">
+            🚗 REAL EV
+          </span>
+        </div>
+
+        <!-- BATTERY STATUS INDICATOR -->
+        <div style="background: #0B101D; border-radius: 10px; padding: 10px; border: 1px solid #1E293B;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 5px;">
+            <span id="batteryLabelText" style="color: #94A3B8;">Status Baterai Kendaraan:</span>
+            <span id="carBatteryStatus" style="font-weight: 700; color: var(--cyan-neon);">28.0% (Siap Cas)</span>
+          </div>
+          <div style="height: 10px; background: #1E293B; border-radius: 9999px; overflow: hidden;">
+            <div id="carBatteryBar" style="height: 100%; width: 28%; background: linear-gradient(90deg, #3B82F6, #00F0FF); transition: width 0.4s ease;"></div>
+          </div>
+          <div id="usbDetectBadge" class="status-pill online" style="margin-top: 8px; width: 100%; display: flex; justify-content: center; font-size: 0.72rem; padding: 4px 6px;">
+            ⚡ Plug & Charge Terverifikasi • Pin Nozzle Terkunci
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP INDICATOR WIZARD -->
+      <div id="wizardStepHeader" class="wizard-step-header">
+        <span id="stepTab1" class="step-pill active">1. Scan QR</span>
+        <div id="stepLine1" class="step-line"></div>
+        <span id="stepTab2" class="step-pill">2. Target Cas</span>
+        <div id="stepLine2" class="step-line"></div>
+        <span id="stepTab3" class="step-pill">3. Pembayaran</span>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- STEP 1: SCAN QR NOZZLE (LANDING FLOW) -->
+      <!-- ============================================== -->
+      <div id="step1View">
+        <!-- PENDING NOZZLE WAITING CARD -->
+        <div id="pendingNozzleCard" class="card" style="display: none; margin-bottom: 16px; padding: 20px 16px; border: 2px solid #38BDF8; background: linear-gradient(180deg, rgba(14, 165, 233, 0.15) 0%, #0C1527 100%); box-shadow: 0 0 25px rgba(56, 189, 248, 0.25);">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(56, 189, 248, 0.15); border: 1px solid #38BDF8; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">
+              🔌
+            </div>
+            <div style="flex: 1;">
+              <div style="font-size: 0.7rem; color: #38BDF8; font-weight: 800; letter-spacing: 0.5px;">MENUNGGU KONEKSI NOZZLE</div>
+              <div id="pendingNozzleName" style="font-size: 1.05rem; font-weight: 800; color: #fff;">Nozzle 3 - DC (CCS2)</div>
+            </div>
+            <span class="status-pill warning" style="font-size: 0.65rem; padding: 3px 7px;">MENUNGGU COLOK</span>
+          </div>
+
+          <div id="pendingNozzleDesc" style="font-size: 0.8rem; color: #CBD5E1; line-height: 1.5; margin-bottom: 14px; background: rgba(15, 23, 42, 0.6); padding: 10px 12px; border-radius: 10px; border: 1px solid #1E293B;">
+            🔌 Silakan colokkan nozzle ke charging port mobil untuk memulai auto-detect.
+          </div>
+
+          <!-- SIMULATION TRIGGER CALLOUT & BUTTON (UNTUK PENGUJIAN CLOUD / VPS) -->
+          <div style="background: rgba(14, 165, 233, 0.1); border: 1px dashed #38BDF8; border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+              <span style="font-size: 0.74rem; font-weight: 700; color: #38BDF8; display: flex; align-items: center; gap: 5px;">
+                <span>🌐</span> Mode Pengujian Cloud / VPS
+              </span>
+              <span class="status-pill online" style="font-size: 0.62rem; padding: 2px 6px;">SIMULASI READY</span>
+            </div>
+            <p style="font-size: 0.74rem; color: #94A3B8; line-height: 1.4; margin-bottom: 10px;">
+              Kabel fisik tidak tersedia di server remote. Tekan tombol di bawah untuk mensimulasikan nozzle telah dicolokkan ke port charging mobil Anda:
+            </p>
+            <button type="button" id="btnSimulatePlug" onclick="simulatePlugCable()" class="btn btn-primary btn-block" style="padding: 13px 14px; font-size: 0.92rem; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #00C6FF 0%, #0072FF 100%); box-shadow: 0 4px 20px rgba(0, 198, 255, 0.45); display: flex; align-items: center; justify-content: center; gap: 8px; border: none; color: #fff; cursor: pointer;">
+              <span>⚡</span> Sudah Tercolok (Lanjut ke Target Cas) ➜
+            </button>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button type="button" onclick="cancelPendingNozzle()" class="btn btn-block" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); color: #FCA5A5; font-size: 0.82rem; font-weight: 700; padding: 10px 12px; border-radius: 10px;">
+              ❌ Batal / Ganti Nozzle
+            </button>
+          </div>
+        </div>
+
+        <!-- SCAN HERO CARD -->
+        <div id="scanHeroCard" class="card" style="margin-bottom: 16px; text-align: center; padding: 22px 18px; border: 1px solid rgba(0, 240, 255, 0.35); background: linear-gradient(180deg, #131E33 0%, #0B1220 100%); box-shadow: 0 8px 30px rgba(0,0,0,0.4);">
+          <div style="width: 70px; height: 70px; margin: 0 auto 14px; border-radius: 20px; background: rgba(0, 240, 255, 0.1); border: 2px solid var(--cyan-neon); display: flex; align-items: center; justify-content: center; font-size: 2rem; box-shadow: 0 0 25px var(--cyan-glow);">
+            📷
+          </div>
+
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 6px;">
+            Pindai QR Nozzle SPKLU
+          </h3>
+
+          <p style="font-size: 0.8rem; color: #94A3B8; line-height: 1.5; margin-bottom: 18px; padding: 0 4px;">
+            Scan QR Code pada nozzle totem Kiosk SPKLU untuk mendeteksi mobil listrik dan memulai pengisian.
+          </p>
+
+          <!-- BIG PRIMARY SCAN BUTTON -->
+          <button class="btn btn-primary btn-block" id="btnOpenQrScanner" onclick="openQrScannerModal()" style="padding: 15px; font-size: 1rem; font-weight: 800; border-radius: 14px; margin-bottom: 16px; box-shadow: 0 4px 25px rgba(0, 198, 255, 0.45);">
+            📷 Scan QR Nozzle SPKLU
+          </button>
+
+          <!-- DIRECT NOZZLE PICKERS (AUTO-DETECT EV) -->
+          <div style="border-top: 1px dashed #1E293B; padding-top: 14px; text-align: left;">
+            <!-- ACTIVE CLAIM RESUME BANNER (MULTI-DEVICE / RECONNECT) -->
+            <div id="activeClaimBanner" style="display: none; background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 12px; text-align: left;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 0.82rem; font-weight: 800; color: #00F0FF;">⚡ Nozzle Sedang Anda Pilih</span>
+                <span class="status-pill success" style="font-size: 0.65rem; padding: 2px 8px;">TERKUNCI</span>
+              </div>
+              <div id="activeClaimBannerText" style="font-size: 0.75rem; color: #CBD5E1; margin-bottom: 10px; line-height: 1.4;">
+                Akun Anda sedang memilih nozzle di stasiun ini.
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-primary btn-sm" onclick="resumeActiveClaim()" style="flex: 1; padding: 7px 12px; font-size: 0.78rem; font-weight: 700;">
+                  ➜ Lanjutkan ke Target Cas
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="cancelActiveClaim()" style="padding: 7px 12px; font-size: 0.78rem; font-weight: 700; background: rgba(239, 68, 68, 0.2); border-color: rgba(239,68,68,0.4); color: #FCA5A5;">
+                  ✕ Batalkan
+                </button>
+              </div>
+            </div>
+
+            <div style="font-size: 0.74rem; color: #94A3B8; font-weight: 700; margin-bottom: 8px; text-align: center;">
+              ⚡ Atau Simulasi Colok Langsung (Auto-Detect EV):
+            </div>
+            <div id="driverNozzlePickerContainer" style="display: flex; flex-direction: column; gap: 8px;">
+              <button type="button" id="btnDemoNozzle1" onclick="triggerSimulatedPlug(1)" class="btn-demo-nozzle">
+                <div>
+                  <div style="font-weight: 800; color: #fff;">🔌 Nozzle 1: AC (Type 2)</div>
+                  <div style="font-size: 0.7rem; color: #94A3B8;">Max 22 kW Normal Charge</div>
+                </div>
+                <div style="text-align: right;" id="badgeNozzleStatus1">
+                  <span style="color: #C084FC; font-weight: 800; font-size: 0.78rem;">Rp 2.466/kWh</span>
+                </div>
+              </button>
+              <button type="button" id="btnDemoNozzle2" onclick="triggerSimulatedPlug(2)" class="btn-demo-nozzle">
+                <div>
+                  <div style="font-weight: 800; color: #fff;">⚡ Nozzle 2: DC (CHAdeMO)</div>
+                  <div style="font-size: 0.7rem; color: #94A3B8;">Max 50 kW Fast Charge</div>
+                </div>
+                <div style="text-align: right;" id="badgeNozzleStatus2">
+                  <span style="color: #38BDF8; font-weight: 800; font-size: 0.78rem;">Rp 3.000/kWh</span>
+                </div>
+              </button>
+              <button type="button" id="btnDemoNozzle3" onclick="triggerSimulatedPlug(3)" class="btn-demo-nozzle">
+                <div>
+                  <div style="font-weight: 800; color: #fff;">⚡ Nozzle 3: DC (CCS2)</div>
+                  <div style="font-size: 0.7rem; color: #94A3B8;">Max 150 kW Ultra-Fast</div>
+                </div>
+                <div style="text-align: right;" id="badgeNozzleStatus3">
+                  <span style="color: #4ADE80; font-weight: 800; font-size: 0.78rem;">Rp 3.500/kWh</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ============================================== -->
+      <!-- STEP 2: TARGET PENGISIAN & KALKULASI ESTIMASI -->
+      <!-- ============================================== -->
+      <div id="step2View" style="display: none;">
+        <!-- SELECTED NOZZLE SUMMARY -->
+        <div style="background: #152238; border: 1px solid var(--cyan-neon); border-radius: 12px; padding: 12px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">NOZZLE TERPILIH (QR SCAN)</div>
+            <div style="font-size: 0.9rem; font-weight: 700; color: #fff;" id="step2NozzleName">-</div>
+          </div>
+          <span class="status-pill online" style="font-size: 0.75rem;">🔒 TERKUNCI</span>
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <h3 style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 12px;">Pilih Target Pengisian (Real EV)</h3>
+          
+          <div class="tab-row" style="grid-template-columns: 1fr 1fr 1fr;">
+            <button class="tab-btn active" id="tabFull80" onclick="selectTargetMode('FULL_80')">Cas 80% (Awet)</button>
+            <button class="tab-btn" id="tabFull100" onclick="selectTargetMode('FULL_100')">Cas 100% (Penuh)</button>
+            <button class="tab-btn" id="tabManualKwh" onclick="selectTargetMode('MANUAL_KWH')">Input kWh</button>
+          </div>
+
+          <div id="targetModeSummary" style="margin-top: 8px; margin-bottom: 8px; font-size: 0.76rem; color: #38BDF8;">
+            🎯 Mengisi baterai hingga 80% (Rekomendasi pabrikan EV untuk menjaga keawetan sel baterai)
+          </div>
+
+          <div id="manualKwhBox" style="display: none; margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="font-size: 0.8rem; color: var(--text-muted);">Jumlah Energi yang Diinginkan:</label>
+              <span id="maxManualKwhHint" style="font-size: 0.74rem; color: var(--cyan-neon); font-weight: 700;">Max: 50.0 kWh</span>
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+              <input type="number" id="inputManualKwh" value="20" min="1" max="100" step="1" placeholder="Contoh: 20" oninput="onManualKwhChanged()" onblur="onManualKwhBlur()" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); color:#fff; padding:10px 14px; border-radius:10px; font-size:1.1rem; font-weight:800;">
+              <span style="align-self: center; font-weight: 800; color: var(--cyan-neon); font-size: 1rem;">kWh</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="kwh-chip" onclick="quickSetKwh(10)">+10 kWh</button>
+              <button type="button" class="kwh-chip" onclick="quickSetKwh(20)">+20 kWh</button>
+              <button type="button" class="kwh-chip" onclick="quickSetKwh(30)">+30 kWh</button>
+              <button type="button" class="kwh-chip" onclick="quickSetKwh(40)">+40 kWh</button>
+            </div>
+          </div>
+
+          <!-- ESTIMATION SUMMARY BOX -->
+          <div style="background: #0D1524; border: 1px solid #1E293B; border-radius: 12px; padding: 14px; margin-top: 10px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem;">
+              <tbody>
+                <tr style="vertical-align: top;">
+                  <td style="color: var(--text-muted); padding: 4px 0; white-space: nowrap; width: 1%;">Energi Dibutuhkan</td>
+                  <td style="color: var(--text-muted); padding: 4px 8px; width: 1%; text-align: center;">:</td>
+                  <td style="text-align: right; padding: 4px 0;">
+                    <span id="estEnergy" style="font-weight: 700; color: #fff; display: block; text-align: right;">0 kWh</span>
+                  </td>
+                </tr>
+                <tr style="vertical-align: top;">
+                  <td style="color: var(--text-muted); padding: 4px 0; white-space: nowrap; width: 1%;">Jarak Tempuh Tambahan</td>
+                  <td style="color: var(--text-muted); padding: 4px 8px; width: 1%; text-align: center;">:</td>
+                  <td style="text-align: right; padding: 4px 0;">
+                    <span id="estKm" style="font-weight: 800; color: #4ADE80; display: block; text-align: right; line-height: 1.35;">+0 KM</span>
+                  </td>
+                </tr>
+                <tr style="vertical-align: top;">
+                  <td style="color: var(--text-muted); padding: 4px 0; white-space: nowrap; width: 1%;">Tarif Listrik SPKLU</td>
+                  <td style="color: var(--text-muted); padding: 4px 8px; width: 1%; text-align: center;">:</td>
+                  <td style="text-align: right; padding: 4px 0;">
+                    <span id="estTariff" style="font-weight: 700; color: #38BDF8; display: block; text-align: right;">Rp 0 / kWh</span>
+                  </td>
+                </tr>
+                <tr style="vertical-align: top;">
+                  <td style="color: var(--text-muted); padding: 4px 0; white-space: nowrap; width: 1%;">Komparasi Hemat Bensin</td>
+                  <td style="color: var(--text-muted); padding: 4px 8px; width: 1%; text-align: center;">:</td>
+                  <td style="text-align: right; padding: 4px 0;">
+                    <span id="estSavings" style="font-weight: 700; color: #FBBF24; display: block; text-align: right; line-height: 1.35;">Hemat Rp 0 vs Pertamax</span>
+                  </td>
+                </tr>
+                <tr style="vertical-align: top;">
+                  <td style="color: var(--text-muted); padding: 4px 0; white-space: nowrap; width: 1%;">Estimasi Durasi Pengisian</td>
+                  <td style="color: var(--text-muted); padding: 4px 8px; width: 1%; text-align: center;">:</td>
+                  <td style="text-align: right; padding: 4px 0;">
+                    <span id="estDuration" style="font-weight: 700; color: #C084FC; display: block; text-align: right;">0 Menit</span>
+                  </td>
+                </tr>
+                <tr style="border-top: 1px dashed #2A3854; vertical-align: top;">
+                  <td style="font-weight: 700; color: #fff; padding: 10px 0 2px 0; white-space: nowrap; font-size: 0.95rem;">Total Deposit Di-Hold</td>
+                  <td style="font-weight: 700; color: #fff; padding: 10px 8px 2px 8px; font-size: 0.95rem; text-align: center;">:</td>
+                  <td style="text-align: right; padding: 10px 0 2px 0;">
+                    <span id="estTotalDeposit" style="font-weight: 800; color: var(--cyan-neon); font-size: 1.05rem; display: block; text-align: right;">Rp 0</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 24px;">
+          <button class="btn btn-secondary" onclick="goToStep(1)" style="flex: 1;">⬅ Ganti Nozzle</button>
+          <button class="btn btn-primary" onclick="goToStep(3)" style="flex: 2;">Lanjut ke Pembayaran ➜</button>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- STEP 3: METODE PEMBAYARAN & KONFIRMASI -->
+      <!-- ============================================== -->
+      <div id="step3View" style="display: none;">
+        <!-- DEPOSIT SUMMARY -->
+        <div style="background: #0E1A30; border: 1px solid #3B82F6; border-radius: 14px; padding: 16px; margin-bottom: 16px; text-align: center;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Total Deposit Yang Di-Hold</div>
+          <div style="font-size: 1.6rem; font-weight: 800; color: var(--cyan-neon); margin-top: 4px;" id="payDepositAmountText">Rp 0</div>
+          <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 4px;">*Sisa deposit otomatis dikembalikan jika pengisian dihentikan lebih awal.</div>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px;">
+          <h3 style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 12px;">Pilih Metode Pembayaran</h3>
+          
+          <div class="tab-row">
+            <button class="tab-btn active" id="payTabWallet" onclick="setPaymentMethod('WALLET')">Saldo Akun</button>
+            <button class="tab-btn" id="payTabQris" onclick="setPaymentMethod('QRIS')">QRIS</button>
+            <button class="tab-btn" id="payTabEmoney" onclick="setPaymentMethod('EMONEY')">E-Money</button>
+          </div>
+
+          <!-- WALLET CONTENT -->
+          <div id="payContentWallet">
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+              Saldo Anda: <b style="color:#4ADE80;">Rp <span id="walletBalDesc">0</span></b>
+            </div>
+            <p style="font-size: 0.75rem; color: #64748B;">
+              Saldo akan di-hold sementara. Pemotongan riil dihitung berdasarkan total energi listrik (kWh) yang terisi ke mobil.
+            </p>
+          </div>
+
+          <!-- QRIS CONTENT -->
+          <div id="payContentQris" style="display: none; text-align: center;">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+              Scan QRIS dinamis via aplikasi perbankan atau e-wallet:
+            </p>
+            <div class="qris-box">
+              <div id="driverQrisCode"></div>
+              <div style="color: #000; font-weight: 800; font-size: 0.9rem; margin-top: 8px;">
+                NOMINAL: <span id="qrisAmountText">Rp 0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- EMONEY CONTENT -->
+          <div id="payContentEmoney" style="display: none; padding: 12px 14px; background: rgba(56, 189, 248, 0.07); border: 1px dashed rgba(56, 189, 248, 0.35); border-radius: 12px; font-size: 0.82rem; color: #94A3B8; text-align: center;">
+            💳 <b>Tap Kartu E-Money:</b> Tempelkan kartu fisik (BCA Flazz / Mandiri E-Money) saat Anda menekan tombol di bawah.
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 24px;">
+          <button class="btn btn-secondary" onclick="goToStep(2)" style="flex: 1;">⬅ Kembali</button>
+          <button class="btn btn-primary" id="btnStartCharging" onclick="startChargingProcess()" style="flex: 2; padding: 14px; font-size: 1rem; border-radius: 14px;">
+            ⚡ MULAI CAS SEKARANG
+          </button>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- VIEW B: LIVE ACTIVE CHARGING SCREEN -->
+      <!-- ============================================== -->
+      <div id="activeChargingView" style="display: none;">
+        <div class="card" style="background: #111A2E; text-align: center; border: 2px solid var(--cyan-neon); box-shadow: 0 0 25px var(--cyan-glow); padding: 16px;">
+          <div class="status-pill busy" style="margin-bottom: 12px;">
+            ⚡ PENGISIAN SEDANG BERLANGSUNG
+          </div>
+
+          <div style="font-size: 0.82rem; color: #94A3B8; margin-bottom: 14px;">
+            <b id="activeChargingCarLabel" style="color: #fff;">Hyundai Ioniq 5 (B 1888 ION)</b>
+          </div>
+
+          <!-- CIRCULAR BATTERY GAUGE -->
+          <div class="telemetry-dial" style="width: clamp(160px, 40vw, 185px); height: clamp(160px, 40vw, 185px); margin: 0 auto 16px;">
+            <div class="dial-value" id="driverLiveSoc">0%</div>
+            <div class="dial-unit" id="driverLiveWatt">0.0 kW</div>
+          </div>
+
+          <!-- BATTERY TAPERING CURVE EDUCATIONAL BANNER -->
+          <div id="driverTaperingBanner" style="display: none; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 12px; padding: 10px 12px; margin-bottom: 14px; text-align: left; font-size: 0.76rem; color: #FCD34D; line-height: 1.4;">
+            💡 <b>Battery Health Protection:</b> Daya cas melambat otomatis di atas 80% untuk menjaga suhu sel kimia baterai mobil tetap awet.
+          </div>
+
+          <!-- LAYMAN TELEMETRY 2x2 GRID (CUSTOMER VALUE) -->
+          <div style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 8px; text-align: left;">
+            💡 Wawasan Pengisian Ramah Pengguna:
+          </div>
+          <div class="layman-insights-grid">
+            <div class="layman-card">
+              <div class="layman-card-label">🚗 Jarak Tempuh</div>
+              <div class="layman-card-val" id="driverLiveKm">+0 KM</div>
+              <div class="layman-card-sub" id="driverLiveKmSub">Tambahan jangkauan</div>
+            </div>
+            <div class="layman-card speed">
+              <div class="layman-card-label">⚡ Kecepatan Cas</div>
+              <div class="layman-card-val" id="driverLiveSpeed">+0.0 km/m</div>
+              <div class="layman-card-sub">Jarak tempuh per menit</div>
+            </div>
+            <div class="layman-card savings">
+              <div class="layman-card-label">💰 Hemat vs Bensin</div>
+              <div class="layman-card-val" id="driverLiveSavings" style="color: #4ADE80;">Rp 0</div>
+              <div class="layman-card-sub" id="driverLiveSavingsSub">Hemat vs Pertamax (60%)</div>
+            </div>
+            <div class="layman-card">
+              <div class="layman-card-label">⏱️ Sisa Waktu</div>
+              <div class="layman-card-val" id="driverLiveEta">0 Mnt</div>
+              <div class="layman-card-sub">Menuju target cas</div>
+            </div>
+          </div>
+
+          <!-- ENGINEERING TELEMETRY ROW -->
+          <div style="background: #0B101D; border-radius: 12px; padding: 12px; margin-bottom: 16px; border: 1px solid #1E293B; text-align: left;">
+            <div style="font-size: 0.68rem; color: #64748B; text-transform: uppercase; font-weight: 700; margin-bottom: 6px;">
+              📊 Data Listrik Teknik (Engineering Telemetry):
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.78rem;">
+              <div>Energi Terisi: <b id="driverLiveMah" style="color: #fff;">0.00 kWh</b></div>
+              <div>Daya Sesaat: <b id="driverLiveKwDetail" style="color: var(--cyan-neon);">0.0 kW</b></div>
+              <div>Tegangan / Arus: <b id="driverLiveVoltAmp" style="color: #CBD5E1;">0 V / 0 A</b></div>
+              <div>Biaya Terpakai: <b id="driverLiveCost" style="color: #38BDF8;">Rp 0</b></div>
+              <div>Sisa Saldo Deposit: <b id="driverLiveRemaining" style="color: #4ADE80;">Rp 0</b></div>
+              <div>Deposit Awal: <b id="driverLiveDeposit" style="color: #94A3B8;">Rp 0</b></div>
+            </div>
+          </div>
+
+          <!-- BIG RED STOP BUTTON -->
+          <button class="btn btn-danger btn-block" style="padding: 16px; font-size: 1rem; border-radius: 14px;" onclick="stopChargingProcess()">
+            🛑 SELESAIKAN & CABUT KABEL (STOP & REFUND)
+          </button>
+          <div style="margin-top: 10px; display: flex; gap: 8px;">
+            <button type="button" onclick="emergencyResetStation()" style="flex:1; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #FCA5A5; padding: 10px; border-radius: 10px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">
+              🔄 Reset Sesi Stasiun
+            </button>
+          </div>
+          <p style="font-size: 0.72rem; color: #94A3B8; margin-top: 10px;">
+            Arus listrik akan segera diputus dan sisa deposit langsung dikembalikan secara otomatis.
+          </p>
+        </div>
+      </div>
+
+          </div> <!-- closes inner padding -->
+        </div> <!-- closes driverAppView -->
+      </div> <!-- closes driver-wrapper -->
+    </div> <!-- closes phone-screen -->
+
+    <!-- Phone Home Indicator Bar -->
+    <div class="phone-home-indicator"></div>
+  </div> <!-- closes phone-device -->
+</main> <!-- closes phone-mockup-wrapper -->
+
+</div> <!-- closes presentation-container -->
+
+  <!-- MODAL: INISIALISASI & VERIFIKASI KENDARAAN (STANDAR SPKLU) -->
+  <div class="modal-overlay" id="handshakeModal">
+    <div class="modal-box" style="border: 2px solid var(--cyan-neon); box-shadow: 0 0 35px var(--cyan-glow); max-width: 440px; text-align: left; position: relative;">
+      <button type="button" onclick="finishHandshakeManually()" title="Tutup / Lanjut" style="position: absolute; top: 14px; right: 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #94A3B8; font-size: 1.2rem; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;">&times;</button>
+      <div style="text-align: center; margin-bottom: 16px;">
+        <div style="font-size: 2.2rem; margin-bottom: 4px;">🛡️</div>
+        <h3 style="font-size: 1.15rem; color: #fff; font-weight: 800;">Inisialisasi & Verifikasi Kendaraan</h3>
+        <p style="font-size: 0.76rem; color: #38BDF8;" id="handshakeSubtitle">Standar Komunikasi EV ISO 15118 & Keselamatan IEC 61851</p>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <div class="handshake-step-item" id="hsStep1">
+          <div class="handshake-step-icon" id="hsIcon1">🔒</div>
+          <div style="flex: 1;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: #fff;">1. Penguncian Konektor (Safety Interlock)</div>
+            <div style="font-size: 0.72rem; color: #94A3B8;" id="hsDesc1">Mengunci konektor nozzle secara mekanikal ke port mobil...</div>
+          </div>
+        </div>
+
+        <div class="handshake-step-item" id="hsStep2">
+          <div class="handshake-step-icon" id="hsIcon2">📡</div>
+          <div style="flex: 1;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: #fff;">2. Sinkronisasi Data BMS (Battery Management)</div>
+            <div style="font-size: 0.72rem; color: #94A3B8;" id="hsDesc2">Membaca parameter voltase, suhu, dan sel baterai...</div>
+          </div>
+        </div>
+
+        <div class="handshake-step-item" id="hsStep3">
+          <div class="handshake-step-icon" id="hsIcon3">🚗</div>
+          <div style="flex: 1;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: #fff;">3. Verifikasi Identitas & Tipe Kendaraan</div>
+            <div style="font-size: 0.72rem; color: #94A3B8;" id="hsDesc3">Memvalidasi spesifikasi kompatibilitas daya kendaraan...</div>
+          </div>
+        </div>
+
+        <div class="handshake-step-item" id="hsStep4">
+          <div class="handshake-step-icon" id="hsIcon4">⚡</div>
+          <div style="flex: 1;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: #fff;">4. Uji Isolasi & Keamanan Listrik</div>
+            <div style="font-size: 0.72rem; color: #94A3B8;" id="hsDesc4">Pemeriksaan sirkuit tegangan tinggi sebelum pengisian...</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="handshakeFooterMsg" style="background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 10px; padding: 10px 12px; font-size: 0.78rem; color: #38BDF8; text-align: center; font-weight: 600; margin-bottom: 10px;">
+        ⏳ Menginisialisasi sistem komunikasi keselamatan kendaraan...
+      </div>
+
+      <button type="button" onclick="finishHandshakeManually()" class="btn btn-secondary btn-block" style="padding: 8px 10px; font-size: 0.74rem; border-color: rgba(56, 189, 248, 0.35); color: #94A3B8;">
+        ⚡ Lewati / Langsung ke Target Cas ➜
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: QR SCANNER UNTUK NOZZLE -->
+  <div class="modal-overlay" id="qrScannerModal">
+    <div class="modal-box" style="border: 2px solid var(--cyan-neon); box-shadow: 0 0 35px var(--cyan-glow); max-width: 420px; text-align: center;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.2rem;">📷</span>
+          <h3 style="font-size: 1rem; color: #fff; font-weight: 700;">Scan QR Nozzle SPKLU</h3>
+        </div>
+        <button onclick="closeQrScannerModal()" style="background:none; border:none; color:#94A3B8; font-size:1.4rem; cursor:pointer;">&times;</button>
+      </div>
+
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">
+        Arahkan kamera HP ke QR Code nozzle pada layar Kiosk SPKLU:
+      </p>
+
+      <!-- CAMERA SCANNER VIEWPORT -->
+      <div id="qrCameraReaderWrapper" style="background:#000; border-radius:12px; overflow:hidden; margin-bottom:14px; position:relative; min-height:220px; display:flex; align-items:center; justify-content:center; border:1px solid #1E293B;">
+        <div id="qrCameraReader" style="width:100%;"></div>
+        <div id="qrCameraLoading" style="position:absolute; color:#94A3B8; font-size:0.8rem; pointer-events:none;">
+          Memuat kamera...
+        </div>
+      </div>
+
+      <div id="qrScanStatusMsg" style="font-size: 0.75rem; color: #38BDF8; margin-bottom: 14px; font-weight: 600;">
+        Pindai QR Nozzle di Layar Totem Kiosk
+      </div>
+
+      <!-- FALLBACK QUICK SELECT FOR VPS / NO CAMERA -->
+      <div style="margin-bottom: 14px; padding: 10px; background: rgba(56, 189, 248, 0.08); border-radius: 10px; border: 1px dashed rgba(56, 189, 248, 0.3); text-align: left;">
+        <div style="font-size: 0.73rem; color: #38BDF8; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+          <span>🌐</span> Atau pilih Nozzle langsung (Simulasi):
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+          <button type="button" id="btnQrScanModalNozzle1" onclick="handleScannedNozzle(1)" class="btn btn-secondary" style="padding: 7px 4px; font-size: 0.72rem; font-weight: 700;">
+            Nozzle 1 (AC)
+          </button>
+          <button type="button" id="btnQrScanModalNozzle2" onclick="handleScannedNozzle(2)" class="btn btn-secondary" style="padding: 7px 4px; font-size: 0.72rem; font-weight: 700;">
+            Nozzle 2 (DC)
+          </button>
+          <button type="button" id="btnQrScanModalNozzle3" onclick="handleScannedNozzle(3)" class="btn btn-secondary" style="padding: 7px 4px; font-size: 0.72rem; font-weight: 700;">
+            Nozzle 3 (CCS)
+          </button>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary btn-block" onclick="closeQrScannerModal()" style="font-size: 0.85rem;">
+        Batal / Tutup
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: STRUK PELUNASAN & REFUND -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal-box">
+      <div style="text-align: center; margin-bottom: 16px;">
+        <div style="font-size: 2.5rem; margin-bottom: 4px;">🧾</div>
+        <h3 style="font-size: 1.15rem; color: #fff;">Struk Pengisian Selesai</h3>
+        <span class="status-pill online" style="margin-top: 6px;">LUNAS / SETTLED</span>
+      </div>
+
+      <div style="background: #0B101D; border-radius: 12px; padding: 14px; margin-bottom: 16px; font-size: 0.85rem;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem;">
+          <tbody>
+            <tr style="vertical-align: top;">
+              <td style="color: var(--text-muted); padding: 4px 0; white-space: nowrap; width: 1%;">ID Transaksi</td>
+              <td style="color: var(--text-muted); padding: 4px 8px; width: 1%; text-align: center;">:</td>
+              <td style="text-align: right; padding: 4px 0;">
+                <span id="receiptSessionCode" style="font-weight: 700; color: #fff; font-family: monospace; display: block; text-align: right;"></span>
+              </td>
+            </tr>
+            <tr style="vertical-align: top;">
+              <td style="color: var(--text-muted); padding: 4px 0; white-space: nowrap; width: 1%;">Mobil Listrik</td>
+              <td style="color: var(--text-muted); padding: 4px 8px; width: 1%; text-align: center;">:</td>
+              <td style="text-align: right; padding: 4px 0;">
+                <span id="receiptCar" style="font-weight: 700; color: #fff; display: block; text-align: right;">Hyundai Ioniq 5</span>
+              </td>
+            </tr>
+            <tr style="vertical-align: top;">
+              <td style="color: var(--text-muted); padding: 4px 0; white-space: nowrap; width: 1%;">Total Energi Masuk</td>
+              <td style="color: var(--text-muted); padding: 4px 8px; width: 1%; text-align: center;">:</td>
+              <td style="text-align: right; padding: 4px 0;">
+                <span id="receiptKwh" style="font-weight: 700; color: var(--cyan-neon); display: block; text-align: right;">0.00 kWh</span>
+              </td>
+            </tr>
+            <tr style="vertical-align: top;">
+              <td style="color: var(--text-muted); padding: 4px 0; white-space: nowrap; width: 1%;">Jarak Tempuh Tambahan</td>
+              <td style="color: var(--text-muted); padding: 4px 8px; width: 1%; text-align: center;">:</td>
+              <td style="text-align: right; padding: 4px 0;">
+                <span id="receiptKm" style="font-weight: 800; color: #4ADE80; display: block; text-align: right; line-height: 1.35;">+0 KM</span>
+              </td>
+            </tr>
+            <tr style="vertical-align: top;">
+              <td style="color: var(--text-muted); padding: 4px 0; white-space: nowrap; width: 1%;">Hemat vs Bensin Pertamax</td>
+              <td style="color: var(--text-muted); padding: 4px 8px; width: 1%; text-align: center;">:</td>
+              <td style="text-align: right; padding: 4px 0;">
+                <span id="receiptSavings" style="font-weight: 800; color: #FBBF24; display: block; text-align: right; line-height: 1.35;">Hemat Rp 0</span>
+              </td>
+            </tr>
+            <tr style="vertical-align: top;">
+              <td style="color: var(--text-muted); padding: 4px 0; white-space: nowrap; width: 1%;">Biaya Aktual Terpakai</td>
+              <td style="color: var(--text-muted); padding: 4px 8px; width: 1%; text-align: center;">:</td>
+              <td style="text-align: right; padding: 4px 0;">
+                <span id="receiptActualCost" style="font-weight: 700; color: #38BDF8; display: block; text-align: right;"></span>
+              </td>
+            </tr>
+            <tr style="vertical-align: top;">
+              <td style="color: var(--text-muted); padding: 4px 0; white-space: nowrap; width: 1%;">Deposit Dibayar Awal</td>
+              <td style="color: var(--text-muted); padding: 4px 8px; width: 1%; text-align: center;">:</td>
+              <td style="text-align: right; padding: 4px 0;">
+                <span id="receiptDepositPaid" style="font-weight: 700; color: #fff; display: block; text-align: right;"></span>
+              </td>
+            </tr>
+            <tr style="border-top: 1px dashed #2A3854; vertical-align: top;">
+              <td style="font-weight: 700; color: #4ADE80; padding: 10px 0 2px 0; white-space: nowrap; font-size: 0.95rem;">Sisa Saldo Di-Refund</td>
+              <td style="font-weight: 700; color: #4ADE80; padding: 10px 8px 2px 8px; font-size: 0.95rem; text-align: center;">:</td>
+              <td style="text-align: right; padding: 10px 0 2px 0;">
+                <span id="receiptRefundAmount" style="font-weight: 800; color: #4ADE80; font-size: 1.05rem; display: block; text-align: right;"></span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style="font-size:0.8rem; color:#94A3B8; text-align:center; margin-bottom:16px;">
+        ✅ Sisa saldo deposit telah dikembalikan otomatis ke akun Anda.
+      </p>
+
+      <button class="btn btn-primary btn-block" onclick="closeReceiptModal()">
+        Selesai & Cabut Nozzle
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: TOP UP SALDO -->
+  <div class="modal-overlay" id="topUpModal">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-size: 1.1rem; color: #fff;">💰 Top-Up Saldo Dompet</h3>
+        <button onclick="closeTopUpModal()" style="background:none; border:none; color:#94A3B8; font-size:1.5rem; cursor:pointer;">&times;</button>
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+        Pilih nominal penambahan deposit saldo akun:
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+        <button class="btn btn-secondary" onclick="executeTopUp(50000)">Rp 50.000</button>
+        <button class="btn btn-secondary" onclick="executeTopUp(100000)">Rp 100.000</button>
+        <button class="btn btn-secondary" onclick="executeTopUp(150000)">Rp 150.000</button>
+        <button class="btn btn-secondary" onclick="executeTopUp(200000)">Rp 200.000</button>
+      </div>
+
+      <button class="btn btn-secondary btn-block" onclick="closeTopUpModal()">Batal</button>
+    </div>
+  </div>
+
+  <!-- MODAL: TAP E-MONEY CARD SIMULATION (DRIVER DEMO) -->
+  <div class="modal-overlay" id="emoneyTapModal">
+    <div class="modal-box" style="max-width: 360px; text-align: center;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div style="font-weight: 800; font-size: 1.05rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+          <span>💳</span> Tempelkan Kartu E-Money
+        </div>
+        <button type="button" onclick="closeEmoneyTapModal()" style="background:none; border:none; color:#94A3B8; font-size:1.4rem; cursor:pointer;">&times;</button>
+      </div>
+
+      <!-- STATE 1: TAP PROMPT (INITIAL) -->
+      <div id="emoneyTapPromptSection" style="display: block;">
+        <div id="emoneyTapTriggerCard" onclick="triggerEmoneyCardTap()" style="cursor: pointer; background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.95) 100%); border: 2px dashed rgba(56, 189, 248, 0.6); border-radius: 18px; padding: 28px 18px; text-align: center; transition: all 0.25s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.35);">
+          <div style="font-size: 3.2rem; margin-bottom: 12px; line-height: 1; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));">
+            📶
+          </div>
+          <div style="font-size: 1.05rem; font-weight: 800; color: #fff; margin-bottom: 6px;">
+            Tempelkan Kartu E-Money
+          </div>
+          <div style="font-size: 0.8rem; color: #94A3B8; margin-bottom: 18px; line-height: 1.4;">
+            Klik di sini untuk menempelkan kartu Anda (Flazz / E-Money / Brizzi / TapCash)
+          </div>
+          <div class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; padding: 10px 20px; border-radius: 25px; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);">
+            <span>👆</span> Tempelkan Kartu (Tap)
+          </div>
+        </div>
+        <div style="margin-top: 14px;">
+          <button type="button" onclick="closeEmoneyTapModal()" class="btn btn-secondary btn-block" style="padding: 10px; font-size: 0.85rem;">Batal</button>
+        </div>
+      </div>
+
+      <!-- STATE 2: DETECTED CARD VIEW (IMAGE 4) -->
+      <div id="emoneyCardDetectedSection" style="display: none;">
+        <div id="emoneyVirtualCard" style="background: linear-gradient(135deg, #1E293B 0%, #0F172A 50%, #0369A1 100%); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 16px; padding: 18px; text-align: left; margin-bottom: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 0 15px rgba(56, 189, 248, 0.15); position: relative; overflow: hidden;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px;">
+            <div style="font-size: 1.3rem;">📶</div>
+            <span id="emoneyCardTypeBadge" style="background: rgba(255,255,255,0.18); padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 800; color: #fff; letter-spacing: 0.5px;">BCA FLAZZ</span>
+          </div>
+          <div id="emoneyCardUidText" style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: #F8FAFC; letter-spacing: 2px; margin-bottom: 14px;">
+            BCA - 6656
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+              <div style="font-size: 0.65rem; color: #94A3B8; text-transform: uppercase;">PEMILIK KARTU</div>
+              <div id="emoneyCardHolderText" style="font-size: 0.85rem; font-weight: 700; color: #fff;">BCA Flazz (Demo #6656)</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 0.65rem; color: #94A3B8; text-transform: uppercase;">SALDO TERSEDIA</div>
+              <div id="emoneyCardBalanceText" style="font-size: 0.95rem; font-weight: 800; color: #4ADE80;">Rp 149.790</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(74, 222, 128, 0.4); border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span class="spinner-border" style="width: 16px; height: 16px; border-width: 2px; border-color: #4ADE80 transparent #4ADE80 transparent; border-radius: 50%; display: inline-block; animation: spin 1s linear infinite;"></span>
+          <span style="font-size: 0.82rem; font-weight: 700; color: #4ADE80;">Kartu Terdeteksi! Memverifikasi pembayaran...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REUSABLE VOLTX DIALOG MODAL (ALERT & CONFIRM) -->
+  <div class="app-dialog-overlay" id="appDialogOverlay">
+    <div class="app-dialog-box info" id="appDialogBox">
+      <div id="appDialogIcon" style="font-size: 3rem; margin-bottom: 12px; line-height: 1;">⚡</div>
+      <h3 id="appDialogTitle" style="font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 6px;">Pemberitahuan</h3>
+      <div id="appDialogSubtitle" style="font-size: 0.82rem; font-weight: 700; color: var(--cyan-neon); margin-bottom: 10px; display: none;"></div>
+      <p id="appDialogMessage" style="font-size: 0.86rem; color: #94A3B8; line-height: 1.5; margin-bottom: 22px; white-space: pre-line; word-break: break-word;"></p>
+      <div id="appDialogButtons" style="display: flex; gap: 10px; justify-content: center;">
+        <button id="appDialogCancelBtn" class="btn btn-secondary" style="flex: 1; padding: 12px; display: none;">Batal</button>
+        <button id="appDialogConfirmBtn" class="btn btn-primary" style="flex: 1; padding: 12px; font-weight: 700;">Mengerti</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/driver.js"></script>
+</body>
+</html>
