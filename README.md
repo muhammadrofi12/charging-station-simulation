@@ -23,7 +23,7 @@ Sistem simulasi **Stasiun Pengisian Kendaraan Listrik Umum (SPKLU / EVCS)** inte
 
 Dirancang fleksibel: dapat dijalankan **100% simulasi (Pure Software Simulation)** maupun dihubungkan dengan **perangkat keras riil (Hardware Mode)**:
 - **💻 Laptop (Kiosk Screen - `/kiosk`)**: Menampilkan visual layar fisik totem mesin SPKLU interaktif, QR Code stasiun dinamis, status 3 nozzle pengisian (AC, DC, CCS), live telemetry gauge (Watt, Volt, Ampere, Suhu, RPM), dan sensor simulasi tap kartu RFID.
-- **📱 HP / Smartphone (Driver App - `/driver`)**: Dibuka melalui browser smartphone pengemudi untuk scan nozzle, deteksi baterai, memilih target cas (Full / Manual kWh / Manual mAh), memilih pembayaran deposit (In-App Wallet, QRIS Dinamis, E-Money Tap), memantau charging secara live, serta tombol **"Stop & Auto-Refund"**!
+- **📱 HP / Smartphone (Driver App - `/driver`)**: Dibuka melalui browser smartphone pengemudi untuk scan nozzle SPKLU, memilih target cas mobil listrik (Full 100% / Target SoC Kustom / Manual kWh), memilih pembayaran deposit (In-App Wallet, QRIS Dinamis, E-Money Tap), memantau charging secara live, serta tombol **"Stop & Auto-Refund"**!
 
 ---
 
@@ -110,8 +110,8 @@ charging-station/
    - Mendukung profil mobil listrik populer di Indonesia: **Hyundai Ioniq 5 (800V)**, **Wuling Binguo EV**, **BYD Seal**, **Tesla Model 3**, dan **Chery Omoda E5**.
    - Dilengkapi kurva penurunan daya otomatis (*CC-CV Tapering Curve*) di atas SoC 80% untuk melindungi sel kimia baterai (*Battery Health Protection*).
 3. **Sinkronisasi Real-Time Dua Arah (WebSockets)**:
-   - Ketika nozzle dicolokkan ke mobil (atau kabel USB ditancapkan ke HP), layar Kiosk seketika menampilkan status **🔌 KABEL TERCOLOK**.
-   - Ketika pengisian dimulai, jarum meter daya (Watt), tegangan (Volt), dan arus (Ampere) bergerak sinkron antara Laptop dan HP.
+   - Ketika nozzle dicolokkan ke mobil listrik (atau simulasi colok nozzle), layar Kiosk seketika menampilkan status **🔌 KABEL TERCOLOK**.
+   - Ketika pengisian dimulai, jarum meter daya (kW), tegangan (Volt), arus (Ampere), dan metrik ramah pengguna (jarak tempuh KM, penghematan BBM) bergerak sinkron antara layar Kiosk dan HP Pengemudi.
 4. **Multi-Metode Pembayaran**:
    - **Saldo Dompet (In-App Wallet)**: Saldo awal sudah disiapkan untuk demo pengujian, dilengkapi fitur `+ Top-Up`.
    - **QRIS Dinamis**: Menghasilkan barcode QRIS sesuai estimasi nominal daya.

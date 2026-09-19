@@ -92,9 +92,9 @@ class StationResponse(BaseModel):
 class EstimateRequest(BaseModel):
     vehicle_id: int
     connector_id: int
-    target_type: str = Field(default="FULL", description="'FULL' atau 'MANUAL_KWH'")
+    target_type: str = Field(default="FULL", description="'FULL' (Cas 80%/100%) atau 'MANUAL_KWH'")
     manual_kwh: Optional[float] = 15.0
-    manual_mah: Optional[float] = None
+    manual_mah: Optional[float] = None  # Kept for backward compatibility if client sends it
     custom_target_soc: Optional[float] = 100.0
 
 class EstimateResponse(BaseModel):
@@ -102,7 +102,6 @@ class EstimateResponse(BaseModel):
     target_soc: float
     battery_capacity_kwh: float
     energy_needed_kwh: float
-    energy_needed_mah: Optional[float] = None
     tariff_per_kwh: float
     estimated_cost: float
     estimated_duration_minutes: float
@@ -115,7 +114,7 @@ class StartChargingRequest(BaseModel):
     vehicle_id: int
     target_type: str = "FULL"  # "FULL" or "MANUAL_KWH"
     manual_kwh: Optional[float] = None
-    manual_mah: Optional[float] = None
+    manual_mah: Optional[float] = None  # Kept for backward compatibility if client sends it
     target_soc: Optional[float] = 100.0
     payment_method: str = "WALLET"  # "WALLET", "QRIS", "EMONEY"
     card_uid: Optional[str] = None
@@ -132,7 +131,6 @@ class ChargingSessionResponse(BaseModel):
     current_soc: float
     target_soc: float
     energy_delivered_kwh: float
-    energy_delivered_mah: Optional[float] = None
     current_power_kw: float
     deposit_paid: float
     actual_cost: float

@@ -1,6 +1,5 @@
 const STATION_CODE = "CS-SDR-01";
 let USER_ID = 1;
-const TOTAL_PHONE_BATTERY_MAH = 5000;
 
 let currentUser = null;
 let userVehicles = [];
@@ -331,8 +330,8 @@ function restoreActiveSessionView(sessionData) {
   const detailKw = document.getElementById("driverLiveKwDetail");
   if (detailKw) detailKw.innerText = `${kw} kW`;
 
-  const mahElem = document.getElementById("driverLiveMah") || document.getElementById("driverLiveKwh");
-  if (mahElem) mahElem.innerText = `${(sessionData.energy_delivered_kwh || 0).toFixed(2)} kWh`;
+  const kwhElem = document.getElementById("driverLiveKwh") || document.getElementById("driverLiveMah");
+  if (kwhElem) kwhElem.innerText = `${(sessionData.energy_delivered_kwh || 0).toFixed(2)} kWh`;
 
   document.getElementById("driverLiveCost").innerText = `Rp ${Math.round(sessionData.current_cost || 0).toLocaleString('id-ID')}`;
   document.getElementById("driverLiveRemaining").innerText = `Rp ${Math.round(sessionData.remaining_deposit || 0).toLocaleString('id-ID')}`;
@@ -884,9 +883,8 @@ async function loadUserData() {
       headerRole.className = currentUser.role === "OPERATOR" ? "status-pill busy" : "status-pill online";
     }
 
-    // Auto-select Real EV or user's active vehicle (ignore legacy Smartphone)
-    const evs = (userVehicles || []).filter(v => v.brand !== "Smartphone");
-    selectedVehicle = evs.length > 0 ? evs[0] : (userVehicles && userVehicles[0] ? userVehicles[0] : null);
+    // Auto-select Real EV or user's active vehicle
+    selectedVehicle = (userVehicles && userVehicles.length > 0) ? userVehicles[0] : null;
     if (selectedVehicle) {
       updateCarDisplay();
     }
@@ -1922,8 +1920,8 @@ function setupWebSocket() {
       if (voltAmp) voltAmp.innerText = `${volt} V / ${amps} A`;
 
       const kwh = data.energy_delivered_kwh !== undefined ? data.energy_delivered_kwh.toFixed(2) : "0.00";
-      const mahElem = document.getElementById("driverLiveMah") || document.getElementById("driverLiveKwh");
-      if (mahElem) mahElem.innerText = `${kwh} kWh`;
+      const kwhElem = document.getElementById("driverLiveKwh") || document.getElementById("driverLiveMah");
+      if (kwhElem) kwhElem.innerText = `${kwh} kWh`;
 
       document.getElementById("driverLiveCost").innerText = `Rp ${Math.round(data.current_cost || 0).toLocaleString('id-ID')}`;
       document.getElementById("driverLiveRemaining").innerText = `Rp ${Math.round(data.remaining_deposit || 0).toLocaleString('id-ID')}`;

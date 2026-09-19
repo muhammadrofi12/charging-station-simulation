@@ -1,5 +1,4 @@
 const STATION_CODE = "CS-SDR-01";
-const TOTAL_PHONE_BATTERY_MAH = 5000;
 let stationConnectors = [];
 let activeSessions = {};
 let ws = null;

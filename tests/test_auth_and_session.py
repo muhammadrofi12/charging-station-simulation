@@ -79,22 +79,26 @@ class TestAuthAndSessionIsolation(unittest.TestCase):
         self.db.add_all([self.c1, self.c2, self.c3])
         self.db.commit()
 
-        # Seed phone vehicle for user 1 and user 2
-        self.phone1 = models.Vehicle(
+        # Seed car vehicle for user 1 and user 2
+        self.car1 = models.Vehicle(
             user_id=self.user1.id,
-            brand="Smartphone",
-            model="HP Budi",
-            battery_capacity_kwh=0.02,
-            current_soc=40.0
+            brand="Hyundai",
+            model="Ioniq 5 Long Range",
+            license_plate="B 1234 EV",
+            battery_capacity_kwh=72.6,
+            current_soc=40.0,
+            efficiency_km_kwh=6.8
         )
-        self.phone2 = models.Vehicle(
+        self.car2 = models.Vehicle(
             user_id=self.user2.id,
-            brand="Smartphone",
-            model="HP Siti",
-            battery_capacity_kwh=0.02,
-            current_soc=50.0
+            brand="Wuling",
+            model="Binguo EV",
+            license_plate="B 5678 EV",
+            battery_capacity_kwh=31.9,
+            current_soc=50.0,
+            efficiency_km_kwh=7.5
         )
-        self.db.add_all([self.phone1, self.phone2])
+        self.db.add_all([self.car1, self.car2])
         self.db.commit()
 
     def tearDown(self):
@@ -146,13 +150,13 @@ class TestAuthAndSessionIsolation(unittest.TestCase):
             user_id=self.user1.id,
             station_id=self.station.id,
             connector_id=self.c1.id,
-            vehicle_id=self.phone1.id,
+            vehicle_id=self.car1.id,
             start_soc=40.0,
             target_soc=100.0,
             current_soc=45.0,
             target_type="FULL",
-            target_kwh=0.012,
-            energy_delivered_kwh=0.001,
+            target_kwh=43.56,
+            energy_delivered_kwh=3.63,
             deposit_paid=50000.0,
             payment_method="WALLET",
             status="CHARGING",
@@ -168,7 +172,7 @@ class TestAuthAndSessionIsolation(unittest.TestCase):
         self.assertTrue(active_res["has_active_session"])
         self.assertEqual(active_res["session_code"], "EV-TEST-123456")
         self.assertEqual(active_res["connector_id"], self.c1.id)
-        self.assertIn("energy_delivered_mah", active_res)
+        self.assertIn("energy_delivered_kwh", active_res)
         self.assertEqual(active_res["deposit_paid"], 50000.0)
 
     def test_multi_session_prevention_for_same_user(self):
@@ -178,12 +182,12 @@ class TestAuthAndSessionIsolation(unittest.TestCase):
             user_id=self.user1.id,
             station_id=self.station.id,
             connector_id=self.c1.id,
-            vehicle_id=self.phone1.id,
+            vehicle_id=self.car1.id,
             start_soc=40.0,
             target_soc=100.0,
             current_soc=42.0,
             target_type="FULL",
-            target_kwh=0.012,
+            target_kwh=43.56,
             deposit_paid=50000.0,
             payment_method="WALLET",
             status="CHARGING",
@@ -198,10 +202,9 @@ class TestAuthAndSessionIsolation(unittest.TestCase):
             user_id=self.user1.id,
             station_code="CS-SDR-01",
             connector_id=self.c2.id,
-            vehicle_id=self.phone1.id,
+            vehicle_id=self.car1.id,
             target_type="FULL",
-            manual_kwh=0.0,
-            manual_mah=1000,
+            manual_kwh=10.0,
             target_soc=100.0,
             payment_method="WALLET"
         )
@@ -220,12 +223,12 @@ class TestAuthAndSessionIsolation(unittest.TestCase):
             user_id=self.user1.id,
             station_id=self.station.id,
             connector_id=self.c1.id,
-            vehicle_id=self.phone1.id,
+            vehicle_id=self.car1.id,
             start_soc=40.0,
             target_soc=100.0,
             current_soc=45.0,
             target_type="FULL",
-            target_kwh=0.012,
+            target_kwh=43.56,
             energy_delivered_kwh=0.0,
             deposit_paid=50000.0,
             actual_cost=0.0,
@@ -258,12 +261,12 @@ class TestAuthAndSessionIsolation(unittest.TestCase):
             user_id=self.user2.id,
             station_id=self.station.id,
             connector_id=self.c2.id,
-            vehicle_id=self.phone2.id,
+            vehicle_id=self.car2.id,
             start_soc=50.0,
             target_soc=100.0,
             current_soc=55.0,
             target_type="FULL",
-            target_kwh=0.01,
+            target_kwh=15.95,
             deposit_paid=20000.0,
             payment_method="WALLET",
             status="CHARGING",
@@ -477,7 +480,7 @@ class TestAuthAndSessionIsolation(unittest.TestCase):
             user_id=self.user1.id,
             station_id=self.station.id,
             connector_id=self.c1.id,
-            vehicle_id=self.phone1.id,
+            vehicle_id=self.car1.id,
             start_soc=20.0,
             target_soc=80.0,
             current_soc=45.0,
@@ -493,7 +496,7 @@ class TestAuthAndSessionIsolation(unittest.TestCase):
             user_id=self.user2.id,
             station_id=self.station.id,
             connector_id=self.c2.id,
-            vehicle_id=self.phone2.id,
+            vehicle_id=self.car2.id,
             start_soc=30.0,
             target_soc=90.0,
             current_soc=60.0,

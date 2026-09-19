@@ -163,55 +163,55 @@ class TestBillingAndRefund(unittest.TestCase):
         self.assertEqual(refund, 70000.0)
         self.assertEqual(self.user.wallet_balance, 70000.0)
 
-    def test_smartphone_battery_estimation_and_settlement(self):
-        # Create Smartphone vehicle: 5000 mAh = 0.02 kWh, current SoC 40%
-        phone_vehicle = models.Vehicle(
+    def test_wuling_binguo_battery_estimation_and_settlement(self):
+        # Create Wuling Binguo EV: 31.9 kWh battery, current SoC 40%
+        binguo_vehicle = models.Vehicle(
             user_id=self.user.id,
-            brand="Smartphone",
-            model="HP Tester (Baterai Asli)",
-            battery_capacity_kwh=0.02,
-            max_ac_kw=0.033,
-            max_dc_kw=0.065,
+            brand="Wuling",
+            model="Binguo EV",
+            battery_capacity_kwh=31.9,
+            max_ac_kw=7.0,
+            max_dc_kw=50.0,
             current_soc=40.0
         )
-        self.db.add(phone_vehicle)
+        self.db.add(binguo_vehicle)
         self.db.commit()
 
-        # Estimate full charge (from 40% to 100% = 60% of 0.02 kWh = 0.012 kWh)
+        # Estimate full charge (from 40% to 100% = 60% of 31.9 kWh = 19.14 kWh)
         estimate = BillingService.calculate_estimate(
-            vehicle=phone_vehicle,
+            vehicle=binguo_vehicle,
             connector=self.conn_ac,
             target_type="FULL"
         )
         self.assertEqual(estimate.current_soc, 40.0)
         self.assertEqual(estimate.target_soc, 100.0)
-        self.assertAlmostEqual(estimate.energy_needed_kwh, 0.012, places=3)
-        # Should enforce minimum deposit for small battery (Rp 2.000)
-        self.assertGreaterEqual(estimate.estimated_cost, 2000.0)
+        self.assertAlmostEqual(estimate.energy_needed_kwh, 19.14, places=2)
+        # Estimated cost: 19.14 * 2466 = 47199.24 -> 47199.0
+        self.assertAlmostEqual(estimate.estimated_cost, 47199.0, places=0)
 
-        # Deposit paid Rp 2.000
-        self.user.wallet_balance = 50000.0
+        # Deposit paid Rp 47.200
+        self.user.wallet_balance = 100000.0
         BillingService.process_payment(
             db=self.db,
             user=self.user,
             deposit_amount=estimate.estimated_cost,
             payment_method="WALLET"
         )
-        self.assertEqual(self.user.wallet_balance, 50000.0 - estimate.estimated_cost)
+        self.assertEqual(self.user.wallet_balance, 100000.0 - estimate.estimated_cost)
 
-        # Delivered energy: 0.012 kWh at Rp 2.466 = Rp 30
+        # Delivered energy: 10.0 kWh at Rp 2.466 = Rp 24.660
         session = models.ChargingSession(
-            session_code="PHONE-SESS-01",
+            session_code="BINGUO-SESS-01",
             user_id=self.user.id,
             station_id=self.station.id,
             connector_id=self.conn_ac.id,
-            vehicle_id=phone_vehicle.id,
+            vehicle_id=binguo_vehicle.id,
             start_soc=40.0,
             target_soc=100.0,
-            current_soc=100.0,
+            current_soc=71.3,
             target_type="FULL",
-            target_kwh=0.012,
-            energy_delivered_kwh=0.012,
+            target_kwh=19.14,
+            energy_delivered_kwh=10.0,
             deposit_paid=estimate.estimated_cost,
             payment_method="WALLET",
             status="CHARGING"
@@ -220,70 +220,48 @@ class TestBillingAndRefund(unittest.TestCase):
         self.db.commit()
 
         actual_cost, refund = BillingService.settle_and_refund(self.db, session)
-        self.assertGreater(actual_cost, 0.0)
-        self.assertEqual(refund, estimate.estimated_cost - actual_cost)
-        self.assertEqual(self.user.wallet_balance, 50000.0 - actual_cost)
+        self.assertEqual(actual_cost, 24660.0)
+        self.assertEqual(refund, estimate.estimated_cost - 24660.0)
+        self.assertEqual(self.user.wallet_balance, 100000.0 - 24660.0)
 
-    def test_smartphone_manual_mah_estimate(self):
-        # Smartphone battery 0.02 kWh (5000 mAh), current SoC 60%
-        # Remaining: 40% = 2000 mAh
-        phone_vehicle = models.Vehicle(
+    def test_byd_seal_custom_soc_estimate(self):
+        # BYD Seal: 82.5 kWh battery, current SoC 20%
+        seal_vehicle = models.Vehicle(
             user_id=self.user.id,
-            brand="Smartphone",
-            model="Mi Phone",
-            battery_capacity_kwh=0.02,
-            max_ac_kw=0.033,
-            max_dc_kw=0.065,
-            current_soc=60.0
+            brand="BYD",
+            model="Seal Performance",
+            battery_capacity_kwh=82.5,
+            max_ac_kw=11.0,
+            max_dc_kw=150.0,
+            current_soc=20.0
         )
-        self.db.add(phone_vehicle)
+        self.db.add(seal_vehicle)
         self.db.commit()
 
-        # Request manual 1000 mAh
+        # Request custom target 80% SoC (Battery preservation mode)
+        # Needed: 60% of 82.5 = 49.5 kWh
         est = BillingService.calculate_estimate(
-            vehicle=phone_vehicle,
-            connector=self.conn_ac,
-            target_type="MANUAL_MAH",
-            manual_mah=1000.0
+            vehicle=seal_vehicle,
+            connector=self.conn_dc,
+            target_type="CUSTOM_SOC",
+            custom_target_soc=80.0
         )
-        self.assertEqual(est.energy_needed_mah, 1000.0)
+        self.assertEqual(est.current_soc, 20.0)
         self.assertEqual(est.target_soc, 80.0)
+        self.assertAlmostEqual(est.energy_needed_kwh, 49.5, places=1)
+        # Cost: 49.5 * 3000 = 148500
+        self.assertAlmostEqual(est.estimated_cost, 148500.0, places=0)
 
-        # Request 3000 mAh (exceeds remaining 2000 mAh) -> should cap at 2000 mAh (100% SoC)
-        est_capped = BillingService.calculate_estimate(
-            vehicle=phone_vehicle,
-            connector=self.conn_ac,
-            target_type="MANUAL_MAH",
-            manual_mah=3000.0
-        )
-        self.assertEqual(est_capped.energy_needed_mah, 2000.0)
-        self.assertEqual(est_capped.target_soc, 100.0)
-
-    def test_smartphone_small_manual_mah_target_precision(self):
-        # Smartphone at 82% SoC, requesting small manual mAh (e.g. 50 mAh)
-        phone = models.Vehicle(
-            user_id=self.user.id,
-            brand="Smartphone",
-            model="Mi Phone 2",
-            battery_capacity_kwh=0.02,
-            max_ac_kw=0.033,
-            max_dc_kw=0.065,
-            current_soc=82.0
-        )
-        self.db.add(phone)
-        self.db.commit()
-
+    def test_legacy_manual_mah_compatibility_fallback(self):
+        # Even if legacy client passes manual_mah, it should fall back cleanly
         est = BillingService.calculate_estimate(
-            vehicle=phone,
+            vehicle=self.vehicle,
             connector=self.conn_ac,
             target_type="MANUAL_MAH",
-            manual_mah=50.0
+            manual_mah=25000.0
         )
-        # energy_needed_kwh must NOT be rounded to 0.0
         self.assertGreater(est.energy_needed_kwh, 0.0)
-        self.assertEqual(est.energy_needed_mah, 50.0)
         self.assertGreater(est.estimated_cost, 0.0)
-        self.assertGreater(est.target_soc, 82.0)
 
 if __name__ == "__main__":
     unittest.main()

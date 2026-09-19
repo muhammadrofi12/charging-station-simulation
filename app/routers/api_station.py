@@ -286,7 +286,7 @@ def get_charging_estimate(req: schemas.EstimateRequest, db: Session = Depends(ge
     vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == req.vehicle_id).first()
     connector = db.query(models.Connector).filter(models.Connector.id == req.connector_id).first()
     if not vehicle or not connector:
-        raise HTTPException(status_code=404, detail="Perangkat HP atau Konektor tidak ditemukan.")
+        raise HTTPException(status_code=404, detail="Kendaraan Listrik (EV) atau Konektor tidak ditemukan.")
     
     return BillingService.calculate_estimate(
         vehicle=vehicle,
@@ -323,7 +323,7 @@ async def start_charging(req: schemas.StartChargingRequest, db: Session = Depend
     vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == req.vehicle_id).first()
 
     if not user or not connector or not vehicle:
-        raise HTTPException(status_code=404, detail="User, Konektor, atau HP tidak ditemukan.")
+        raise HTTPException(status_code=404, detail="User, Konektor, atau Kendaraan Listrik (EV) tidak ditemukan.")
 
     if connector.status == "CHARGING":
         raise HTTPException(status_code=400, detail="Konektor ini sedang digunakan untuk sesi pengisian lain!")
@@ -370,15 +370,9 @@ async def start_charging(req: schemas.StartChargingRequest, db: Session = Depend
 
     # 2. Create Charging Session
     session_code = f"EV-{utc_now().strftime('%y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
-    is_smartphone = vehicle.battery_capacity_kwh <= 0.1
     target_kwh = estimate.energy_needed_kwh
-    if req.target_type in ("MANUAL_KWH", "MANUAL_MAH"):
-        if req.manual_kwh and req.manual_kwh > 0:
-            target_kwh = min(req.manual_kwh, estimate.energy_needed_kwh)
-        elif is_smartphone and req.manual_mah and req.manual_mah > 0:
-            target_kwh = max(0.0001, round((req.manual_mah / 5000.0) * 0.02, 6))
-    elif is_smartphone:
-        target_kwh = max(0.0001, round(estimate.energy_needed_kwh, 6))
+    if req.target_type in ("MANUAL_KWH", "MANUAL_MAH") and req.manual_kwh and req.manual_kwh > 0:
+        target_kwh = min(req.manual_kwh, estimate.energy_needed_kwh)
 
     new_session = models.ChargingSession(
         session_code=session_code,
@@ -468,7 +462,6 @@ def get_active_session(connector_id: int, db: Session = Depends(get_db)):
         "session_code": session.session_code,
         "current_soc": session.current_soc,
         "energy_delivered_kwh": session.energy_delivered_kwh,
-        "energy_delivered_mah": round((session.energy_delivered_kwh / 0.02) * 5000),
         "current_power_kw": session.current_power_kw,
         "deposit_paid": session.deposit_paid,
         "payment_method": session.payment_method
@@ -506,17 +499,11 @@ def get_user_active_session(user_id: int, db: Session = Depends(get_db)):
         return {"has_active_session": False}
 
     vehicle = db.query(models.Vehicle).filter(models.Vehicle.id == session.vehicle_id).first()
-    battery_cap = vehicle.battery_capacity_kwh if vehicle else 0.02
-    battery_mah = 5000.0 if battery_cap <= 0.1 else round(battery_cap * 250000.0, 0)
-    delivered_mah = round((session.energy_delivered_kwh / battery_cap) * battery_mah, 0)
+    battery_cap = vehicle.battery_capacity_kwh if vehicle else 72.6
     tariff = connector.tariff_per_kwh if connector else 2466.0
-
-    if battery_cap <= 0.1:
-        current_cost = min(session.deposit_paid, round((delivered_mah / 500.0) * tariff, 0))
-    else:
-        current_cost = min(session.deposit_paid, round(session.energy_delivered_kwh * tariff, 0))
+    current_cost = min(session.deposit_paid, round(session.energy_delivered_kwh * tariff, 0))
     remaining_deposit = max(0.0, session.deposit_paid - current_cost)
-    watts = (session.current_power_kw * 1000.0) if session.current_power_kw else 33.0
+    watts = (session.current_power_kw * 1000.0) if session.current_power_kw else 0.0
 
     efficiency = vehicle.efficiency_km_kwh if (vehicle and vehicle.efficiency_km_kwh) else 6.8
     layman = ChargingEngine.calculate_layman_metrics(
@@ -539,7 +526,6 @@ def get_user_active_session(user_id: int, db: Session = Depends(get_db)):
         "connector_type": connector.connector_type if connector else "Type 2",
         "current_soc": session.current_soc,
         "energy_delivered_kwh": session.energy_delivered_kwh,
-        "energy_delivered_mah": delivered_mah,
         "current_power_kw": session.current_power_kw,
         "current_power_w": round(watts, 1),
         "deposit_paid": session.deposit_paid,
