@@ -141,22 +141,22 @@ flowchart LR
 
 | **1. Halaman Login Driver / Operator** | **2. Dashboard Utama Driver** |
 | :---: | :---: |
-| ![Halaman Login](docs/mockup/halaman-login.png) | ![Halaman Utama Driver](docs/mockup/halaman-utama-driver.png) |
+| ![Halaman Login](docs/mockup/halaman-login.webp) | ![Halaman Utama Driver](docs/mockup/halaman-utama-driver.webp) |
 | Masuk ke sistem dengan opsi *Quick Demo Login* (`driver1`, `driver2`, `admin`) tanpa perlu mengetik manual saat pengujian. | Memantau profil mobil listrik, status stasiun terdekat, kartu RFID/Flazz terdaftar, dan saldo dompet (*In-App Wallet*). |
 
 | **3. Verifikasi Keselamatan (Handshake ISO 15118)** | **4. Pemilihan Target Pengisian** |
 | :---: | :---: |
-| ![Verifikasi Handshake](docs/mockup/verifikasi.png) | ![Halaman Pengisian](docs/mockup/halaman-pengisisan.png) |
+| ![Verifikasi Handshake](docs/mockup/verifikasi.webp) | ![Halaman Pengisian](docs/mockup/halaman-pengisisan.webp) |
 | Protokol 4 tahap keselamatan: *Mechanical Safety Lock*, Sinkronisasi BMS CAN-Bus, Identifikasi Kendaraan, dan Uji Isolasi Listrik. | Pilihan target pengisian (80% Rekomendasi Pabrikan / 100% Penuh / Manual kWh) lengkap dengan kalkulasi komparasi hemat bensin Pertamax. |
 
 | **5. Konfirmasi Pembayaran & Hold Deposit** | **6. Live Telemetri Pengisian (Driver App)** |
 | :---: | :---: |
-| ![Halaman Pembayaran](docs/mockup/halaman-pembayaran.png) | ![Progres Pengisian](docs/mockup/halaman-progres-pengisian.png) |
+| ![Halaman Pembayaran](docs/mockup/halaman-pembayaran.webp) | ![Progres Pengisian](docs/mockup/halaman-progres-pengisian.webp) |
 | Pilih metode pembayaran deposit awal: Saldo Akun (*Hold*), QRIS Dinamis, atau Tap Kartu E-Money/RFID dengan proteksi saldo. | Pemantauan daya aktif (Watt), tegangan (Volt), arus (Ampere), suhu (°C), kenaikan jarak tempuh (KM), dan tombol stop darurat. |
 
 | **7. Layar Totem Mesin SPKLU (Kiosk Laptop)** | **8. Struk Pelunasan & Auto-Refund** |
 | :---: | :---: |
-| ![Status Kiosk](docs/mockup/halaman-status-pengisian-kios.png) | ![Struk Driver](docs/mockup/halaman-struk-driver.png) |
+| ![Status Kiosk](docs/mockup/halaman-status-pengisian-kios.webp) | ![Struk Driver](docs/mockup/halaman-struk-driver.webp) |
 | Tampilan layar fisik totem SPKLU di laptop yang memvisualisasikan status 3 nozzle serentak dan live gauge saat mobil mengecas. | Sesi selesai: biaya riil dihitung berdasarkan kWh masuk, dan sisa saldo deposit langsung di-refund seketika ke akun pengguna! |
 
 ---
